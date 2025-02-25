@@ -42,27 +42,27 @@ void print_text_block(const uint8_t iteration, const uint8_t block_index, const 
 }
 
 void key_addition_layer(const uint8_t iteration, const uint8_t block_index, unsigned char *text_block, unsigned char *key) {
-    print_text_block(iteration, block_index, "Before key addition layer: ", text_block); 
+    //print_text_block(iteration, block_index, "Before key addition layer: ", text_block); 
     for (int i = 0; i < AES_BLOCK_SIZE; i++) {
         text_block[i] ^= key[i]; 
     }
-    print_text_block(iteration, block_index, "After key addition layer: ", text_block); 
+    //print_text_block(iteration, block_index, "After key addition layer: ", text_block); 
 }; 
 
 void byte_substitution_layer(const uint8_t iteration, const uint8_t block_index, unsigned char *text_block){
-    print_text_block(iteration, block_index, "Before byte substitution layer: ", text_block); 
+    //print_text_block(iteration, block_index, "Before byte substitution layer: ", text_block); 
     for (int i = 0; i < AES_BLOCK_SIZE; i++) {
         unsigned char byte = text_block[i];
         unsigned char x = (byte >> 4) & 0x0F; 
         unsigned char y = byte & 0x0F;       
         text_block[i] = sbox[x][y];
     }
-    print_text_block(iteration, block_index, "After byte substitution layer: ", text_block); 
+    //print_text_block(iteration, block_index, "After byte substitution layer: ", text_block); 
 }
 
 void shift_rows(const uint8_t iteration, const uint8_t block_index, unsigned char *text_block) {
     unsigned char temp[AES_BLOCK_SIZE];
-    print_text_block(iteration, block_index,  "Before shifting rows: ", text_block); 
+    //print_text_block(iteration, block_index,  "Before shifting rows: ", text_block); 
 
     for (int i = 0; i < AES_BLOCK_SIZE; i++) {
         temp[i] = text_block[i];
@@ -84,7 +84,7 @@ void shift_rows(const uint8_t iteration, const uint8_t block_index, unsigned cha
     text_block[13] = temp[1]; 
     text_block[14] = temp[6]; 
     text_block[15] = temp[11]; 
-    print_text_block(iteration, block_index, "After shifting rows: ", text_block); 
+    //print_text_block(iteration, block_index, "After shifting rows: ", text_block); 
 }
 
 unsigned char gmul(unsigned char a, unsigned char b) {
@@ -103,7 +103,7 @@ unsigned char gmul(unsigned char a, unsigned char b) {
 }
 
 void mix_columns(const uint8_t iteration, const uint8_t block_index, unsigned char *text_block) {
-    print_text_block(iteration, block_index, "Before mix columns: ", text_block);
+    //print_text_block(iteration, block_index, "Before mix columns: ", text_block);
 
     unsigned char temp_state[16];
 
@@ -131,7 +131,7 @@ void mix_columns(const uint8_t iteration, const uint8_t block_index, unsigned ch
 		text_block[i] = temp_state[i];
 	}
 
-    print_text_block(iteration, block_index, "After mix columns: ", text_block);
+    //print_text_block(iteration, block_index, "After mix columns: ", text_block);
 }
 
 void diffusion_layer(const uint8_t iteration, const uint8_t block_index, unsigned char *text_block){
@@ -193,7 +193,7 @@ void cipher(unsigned char *key, unsigned char *plaintext, unsigned char *ciphert
 }
 
 int main(void) {
-    FILE *file = fopen("../src/aes_sample.in", "rb"); 
+    FILE *file = stdin; 
     if (!file) {
         perror("Error opening the file"); 
         return 1;
@@ -223,17 +223,8 @@ int main(void) {
     for (int i = 0; i < 16; i++) {
         key[i] = buffer[i];
     }
-
-    printf("Extracted Key:\n");
-    for (int i = 0; i < 16; i++) {
-        printf("%02X ", key[i]);
-    }
-    printf("\n\n");
-
-    // Determine the size of the plaintext
     size_t plaintext_size = file_size - 16;
 
-    // Allocate memory for the plaintext
     unsigned char *plaintext = (unsigned char *)malloc(plaintext_size);
     if (!plaintext) {
         perror("Memory allocation for plaintext failed.");
@@ -241,12 +232,10 @@ int main(void) {
         return 1;
     }
 
-    // Copy the plaintext from the buffer
     for (size_t i = 0; i < plaintext_size; i++) {
         plaintext[i] = buffer[16 + i];
     }
 
-    // Encrypt the plaintext
     unsigned char *ciphertext = (unsigned char *)malloc(plaintext_size);
     if (!ciphertext) {
         perror("Memory allocation for ciphertext failed.");
@@ -254,29 +243,11 @@ int main(void) {
         free(plaintext);
         return 1;
     }
-
-    printf("Plaintext: \n"); 
-    for(size_t i=0; i<plaintext_size; i++){
-        printf("%02x ", plaintext[i]);
-        if ((i + 1) % 16 == 0) {
-            printf("\n");
-        }
-    }
-    printf("\n");
-
     cipher(key, plaintext, ciphertext, plaintext_size);
 
-    // Print the encrypted contents
-    printf("Encrypted contents in bytes: \n");
     for (size_t i = 0; i < plaintext_size; i++) {
-        printf("%02x ", ciphertext[i]);
-        if ((i + 1) % 16 == 0) {
-            printf("\n");
-        }
+        printf("%c", ciphertext[i]);
     }
-    printf("\n");
-
-    // Free allocated memory
     free(buffer);
     free(plaintext);
     free(ciphertext);
